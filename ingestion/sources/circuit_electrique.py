@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import logging
 from io import StringIO
 
@@ -14,42 +15,100 @@ CE_CSV_URL = "https://data.lecircuitelectrique.com/stations/export_sites_fr.csv"
 
 _HEADERS = {"User-Agent": "curl/7.88"}
 
+# Output column order
+_OUTPUT_COLUMNS = [
+    "station_id",
+    "latitude",
+    "longitude",
+    "station_name",
+    "street_address",
+    "city",
+    "province_code",
+    "postal_code",
+    "network_name",
+    "status_code",
+    "l1_port_count",
+    "l2_port_count",
+    "dcfc_port_count",
+]
+
+
+def _charging_level(level: str) -> str:
+    """Classify a charging level string into 'l1', 'l2', or 'dcfc'."""
+    normalized = str(level).strip().lower()
+    if normalized.startswith("niveau 1"):
+        return "l1"
+    if normalized.startswith("niveau 2"):
+        return "l2"
+    return "dcfc"
+
+
+def _station_id(lat: float, lon: float) -> str:
+    """Return the MD5 hex digest of 'lat|lon' as the station identifier."""
+    key = f"{lat}|{lon}".encode("utf-8")
+    return hashlib.md5(key).hexdigest()
+
 
 def fetch_circuit_electrique() -> pd.DataFrame:
+    """Download the Circuit Électrique CSV and return a station-level DataFrame."""
     try:
         response = requests.get(CE_CSV_URL, headers=_HEADERS, timeout=60)
         response.raise_for_status()
     except requests.RequestException as exc:
         raise IngestionError(f"Circuit Électrique download failed: {exc}") from exc
 
-    raw = pd.read_csv(StringIO(response.text))
-    logger.info("Fetched %d rows from Circuit Électrique", len(raw))
+    raw = pd.read_csv(StringIO(response.text), sep=",")
+    logger.info("Fetched %d port rows from Circuit Électrique", len(raw))
 
-    # Normalise to the shared schema where possible.
-    # Column names vary by export; map best-effort.
-    df = pd.DataFrame()
-    df["latitude"] = pd.to_numeric(
-        raw.get("latitude", raw.get("Latitude")), errors="coerce"
-    )
-    df["longitude"] = pd.to_numeric(
-        raw.get("longitude", raw.get("Longitude")), errors="coerce"
-    )
-    df["station_name"] = raw.get("nom_site", raw.get("name", ""))
-    df["street_address"] = raw.get("adresse", raw.get("address", ""))
-    df["city"] = raw.get("ville", raw.get("city", ""))
-    df["province_code"] = "QC"  # Circuit Électrique is Quebec-only
-    df["postal_code"] = raw.get("code_postal", raw.get("postal_code", ""))
-    df["network_name"] = "Circuit Électrique"
-    df["status_code"] = "E"
+    # Coerce coordinates to numeric; rows with bad values become NaN
+    raw["Latitude"] = pd.to_numeric(raw["Latitude"], errors="coerce")
+    raw["Longitude"] = pd.to_numeric(raw["Longitude"], errors="coerce")
 
-    before = len(df)
-    df = df.dropna(subset=["latitude", "longitude"])
-    dropped = before - len(df)
+    # Classify each port into l1 / l2 / dcfc
+    niveau_col = "Niveau de recharge"
+    raw["_level"] = raw[niveau_col].fillna("").apply(_charging_level)
+
+    # Aggregate port rows → station rows grouped by (Latitude, Longitude)
+    def _agg(grp: pd.DataFrame) -> pd.Series:
+        return pd.Series(
+            {
+                "station_name": grp["Nom du parc"].iloc[0],
+                "street_address": grp["Rue"].iloc[0],
+                "city": grp["Ville"].iloc[0],
+                "postal_code": grp["Code Postal"].iloc[0],
+                "l1_port_count": int((grp["_level"] == "l1").sum()),
+                "l2_port_count": int((grp["_level"] == "l2").sum()),
+                "dcfc_port_count": int((grp["_level"] == "dcfc").sum()),
+            }
+        )
+
+    grouped = (
+        raw.groupby(["Latitude", "Longitude"], dropna=False).apply(_agg).reset_index()
+    )
+
+    grouped.rename(
+        columns={"Latitude": "latitude", "Longitude": "longitude"}, inplace=True
+    )
+
+    # Drop stations without valid coordinates
+    before = len(grouped)
+    grouped = grouped.dropna(subset=["latitude", "longitude"])
+    dropped = before - len(grouped)
     if dropped:
-        logger.warning("Dropped %d CE records with missing lat/lon", dropped)
+        logger.warning("Dropped %d CE stations with missing lat/lon", dropped)
 
-    logger.info("Returning %d Circuit Électrique rows", len(df))
-    return df
+    # Add constant columns
+    grouped["province_code"] = "QC"
+    grouped["network_name"] = "Circuit Électrique"
+    grouped["status_code"] = "E"
+
+    # Derive station_id from coordinates
+    grouped["station_id"] = grouped.apply(
+        lambda row: _station_id(row["latitude"], row["longitude"]), axis=1
+    )
+
+    logger.info("Returning %d Circuit Électrique stations", len(grouped))
+    return grouped[_OUTPUT_COLUMNS]
 
 
 if __name__ == "__main__":

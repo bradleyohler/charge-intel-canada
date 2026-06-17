@@ -41,6 +41,8 @@ sources:
       - name: CIRCUIT_ELECTRIQUE_RAW
         description: "Raw EV charging station data from Circuit Électrique (Hydro-Québec)"
         columns:
+          - name: station_id
+            description: "MD5 surrogate key derived from latitude|longitude"
           - name: latitude
           - name: longitude
           - name: station_name
@@ -50,6 +52,12 @@ sources:
           - name: postal_code
           - name: network_name
           - name: status_code
+          - name: l1_port_count
+            description: "Number of Level 1 charging ports at this station"
+          - name: l2_port_count
+            description: "Number of Level 2 charging ports at this station"
+          - name: dcfc_port_count
+            description: "Number of DC fast charging ports at this station"
           - name: _ingested_at
           - name: _source
       - name: CER_RATES_RAW

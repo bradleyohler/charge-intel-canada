@@ -60,15 +60,20 @@ def fetch_circuit_electrique() -> pd.DataFrame:
     raw = pd.read_csv(StringIO(response.text), sep=",")
     logger.info("Fetched %d port rows from Circuit Électrique", len(raw))
 
+    # Work on an explicit copy to avoid chained-assignment warnings
+    raw = raw.copy()
+
     # Coerce coordinates to numeric; rows with bad values become NaN
-    raw["Latitude"] = pd.to_numeric(raw["Latitude"], errors="coerce")
-    raw["Longitude"] = pd.to_numeric(raw["Longitude"], errors="coerce")
+    raw.loc[:, "Latitude"] = pd.to_numeric(raw["Latitude"], errors="coerce")
+    raw.loc[:, "Longitude"] = pd.to_numeric(raw["Longitude"], errors="coerce")
 
     # Classify each port into l1 / l2 / dcfc
     niveau_col = "Niveau de recharge"
-    raw["_level"] = raw[niveau_col].fillna("").apply(_charging_level)
+    raw.loc[:, "_level"] = raw[niveau_col].fillna("").apply(_charging_level)
 
-    # Aggregate port rows → station rows grouped by (Latitude, Longitude)
+    # Aggregate port rows → station rows grouped by (Latitude, Longitude).
+    # include_groups=False excludes the groupby keys from grp so _agg only sees
+    # the payload columns; the keys are re-attached via reset_index().
     def _agg(grp: pd.DataFrame) -> pd.Series:
         return pd.Series(
             {
@@ -83,7 +88,9 @@ def fetch_circuit_electrique() -> pd.DataFrame:
         )
 
     grouped = (
-        raw.groupby(["Latitude", "Longitude"], dropna=False).apply(_agg).reset_index()
+        raw.groupby(["Latitude", "Longitude"], dropna=False)
+        .apply(_agg, include_groups=False)
+        .reset_index()
     )
 
     grouped.rename(

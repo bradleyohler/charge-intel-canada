@@ -1,2 +1,43 @@
-# Scoping document
-SCOPE.md
+# Local dev cache (avoids hammering APIs during development)
+.cache/
+
+# Secrets and credentials
+.env
+terraform.tfvars
+terraform.tfvars.json
+*.p8
+*.pem
+*.pub
+
+# Terraform state
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+
+# dbt
+dbt/profiles.yml
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# IDE
+.DS_Store
+.vscode/
+.idea/
+*.swp

@@ -1,0 +1,6 @@
+corridor_id,corridor_name,description,province_codes,approx_length_km,highway_numbers
+TCH_MAIN,Trans-Canada Highway,Main Trans-Canada route from Victoria BC to St. John's NL,"BC,AB,SK,MB,ON,QC,NB,NS,PE,NL",7821,1
+HWY_1117_NO,Highway 11/17 Northern Ontario,Northern Ontario Trans-Canada alternate through Sudbury and Sault Ste. Marie,"ON",1100,"11,17"
+YELLOWHEAD,Yellowhead Highway,Yellowhead Route (Hwy 16) from Portage la Prairie MB to Prince Rupert BC,"BC,AB,SK,MB",2900,16
+COQUIHALLA,Coquihalla Highway,BC interior connector from Hope to Kamloops,"BC",200,5
+TCH_ATLANTIC,Trans-Canada Atlantic,Trans-Canada through Atlantic provinces,"NB,NS,PE,NL",1400,1

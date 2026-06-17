@@ -1,0 +1,32 @@
+version: 2
+
+models:
+  - name: gold_coverage_by_province
+    description: >
+      Province-level EV charging coverage summary. One row per province/territory.
+      coverage_score formula (0-100):
+        0.50 * LEAST(dcfc_per_100k_pop / 2.0, 1.0)   -- 2.0 DCFC per 100K = adequate
+        + 0.30 * LEAST(ports_per_100k_pop / 20.0, 1.0) -- 20 total ports per 100K = benchmark
+        + 0.20 * LEAST(network_count / 5.0, 1.0)        -- 5+ networks = competitive
+        * 100
+
+  - name: gold_coverage_by_fsa
+    description: "FSA-level coverage summary. is_underserved = coverage_score < 25."
+
+  - name: gold_coverage_corridor
+    description: >
+      Highway corridor coverage analysis. Stations within 25 km of corridor path
+      identified via Haversine distance. has_critical_gap = max_gap_km > 100.
+
+  - name: gold_network_pricing_comparison
+    description: >
+      One row per network-province-membership_tier combination.
+      national_rank is ascending by normalized_kwh_rate (lower = cheaper), NULLs last.
+
+  - name: gold_site_viability_score
+    description: >
+      FSA-level site viability for new EV charging infrastructure.
+      site_viability_score = 0.30*(100-coverage_score) + 0.25*electricity_score
+        + 0.25*demand_proxy_score + 0.20*(100-network_competition_score)
+      viability_tier: HIGH >= 70, MEDIUM 40-69, LOW < 40.
+      Built in Release 4; scaffold only in Release 0.

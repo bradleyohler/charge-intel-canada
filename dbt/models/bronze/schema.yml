@@ -1,0 +1,99 @@
+version: 2
+
+sources:
+  - name: bronze
+    database: CHARGE_INTEL_CANADA
+    schema: BRONZE
+    tables:
+      - name: AFDC_CHARGING_UNITS_RAW
+        description: "Raw port-level EV charging unit data from the NREL/AFDC ev-charging-units API (CSV). One row per charging port."
+      - name: AFDC_NETWORKS_RAW
+        description: "Raw EV charging network reference list from the NREL/AFDC electric-networks API."
+      - name: AFDC_STATIONS_RAW
+        description: "Legacy: Raw EV charging station data from the old NREL/AFDC all-stations API (retained for reference)"
+        columns:
+          - name: station_id
+            description: "Unique station identifier from AFDC"
+          - name: station_name
+            description: "Name of the charging station"
+          - name: street_address
+          - name: city
+          - name: province_code
+            description: "Canadian province/territory code (2 letters)"
+          - name: postal_code
+          - name: latitude
+          - name: longitude
+          - name: status_code
+            description: "E=open, T=temporarily_closed, P=planned"
+          - name: l1_port_count
+          - name: l2_port_count
+          - name: dcfc_port_count
+          - name: connector_types
+          - name: network_name
+          - name: network_url
+          - name: pricing_raw_en
+          - name: pricing_raw_fr
+          - name: open_date
+          - name: is_workplace
+          - name: source_updated_at
+          - name: _ingested_at
+          - name: _source
+      - name: CIRCUIT_ELECTRIQUE_RAW
+        description: "Raw EV charging station data from Circuit Électrique (Hydro-Québec)"
+        columns:
+          - name: latitude
+          - name: longitude
+          - name: station_name
+          - name: street_address
+          - name: city
+          - name: province_code
+          - name: postal_code
+          - name: network_name
+          - name: status_code
+          - name: _ingested_at
+          - name: _source
+      - name: CER_RATES_RAW
+        description: "Electricity rates from Canada Energy Regulator"
+        columns:
+          - name: province_code
+          - name: rate_type
+          - name: period
+          - name: rate_value
+          - name: rate_unit
+          - name: effective_date
+          - name: _ingested_at
+          - name: _source
+      - name: STATCAN_POPULATION_RAW
+        description: "Statistics Canada 2021 Census population by Forward Sortation Area"
+        columns:
+          - name: fsa
+          - name: province_code
+          - name: population
+          - name: area_sq_km
+          - name: _ingested_at
+          - name: _source
+      - name: PRICING_SCRAPE_RAW
+        description: "Network pricing data scraped from EV charging network websites"
+        columns:
+          - name: network_name
+          - name: province_code
+          - name: membership_tier
+          - name: pricing_model
+          - name: rate_value
+          - name: rate_unit
+          - name: currency
+          - name: scraped_at
+          - name: _ingested_at
+          - name: _source
+
+models:
+  - name: bronze_afdc_stations
+    description: "View over AFDC_STATIONS_RAW – no transformations"
+  - name: bronze_circuit_electrique
+    description: "View over CIRCUIT_ELECTRIQUE_RAW – no transformations"
+  - name: bronze_cer_rates
+    description: "View over CER_RATES_RAW – no transformations"
+  - name: bronze_statcan_population
+    description: "View over STATCAN_POPULATION_RAW – no transformations"
+  - name: bronze_pricing_scrape
+    description: "View over PRICING_SCRAPE_RAW – no transformations"

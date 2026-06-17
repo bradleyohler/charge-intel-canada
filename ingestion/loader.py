@@ -36,7 +36,7 @@ def _sf_type(dtype: Any) -> str:
 def _load_private_key(path: str) -> bytes:
     key_bytes = Path(path).read_bytes()
     private_key = load_pem_private_key(key_bytes, password=None)
-    der: bytes = private_key.private_bytes(  # type: ignore[assignment]
+    der: bytes = private_key.private_bytes(
         encoding=Encoding.DER,
         format=PrivateFormat.PKCS8,
         encryption_algorithm=NoEncryption(),

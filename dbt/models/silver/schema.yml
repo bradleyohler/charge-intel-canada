@@ -1,0 +1,69 @@
+version: 2
+
+models:
+  - name: silver_stations
+    description: "Cleaned and normalized EV charging station data reconciled from AFDC and Circuit Électrique sources."
+    columns:
+      - name: station_id
+        description: "Unique station identifier"
+        tests:
+          - unique
+          - not_null
+      - name: latitude
+        tests:
+          - not_null
+      - name: longitude
+        tests:
+          - not_null
+      - name: province_code
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['AB', 'BC', 'MB', 'NB', 'NL', 'NS', 'NT', 'NU', 'ON', 'PE', 'QC', 'SK', 'YT']
+      - name: status
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['open', 'temporarily_closed', 'planned']
+      - name: data_source
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['afdc', 'circuit_electrique']
+      - name: total_port_count
+        description: "Sum of L1, L2, and DCFC ports"
+
+  - name: silver_networks
+    description: "Distinct EV charging networks present in Canada"
+    columns:
+      - name: network_name
+        tests:
+          - unique
+          - not_null
+
+  - name: silver_electricity_rates
+    description: "Cleaned electricity rates from Canada Energy Regulator, one row per province per rate type"
+    columns:
+      - name: province_code
+        tests:
+          - not_null
+
+  - name: silver_population_density
+    description: "Statistics Canada 2021 Census population by FSA (Forward Sortation Area)"
+    columns:
+      - name: fsa
+        tests:
+          - unique
+          - not_null
+      - name: province_code
+        tests:
+          - not_null
+      - name: population
+        tests:
+          - not_null
+
+  - name: silver_pricing_raw
+    description: "Cleaned network pricing data from scrapers"
+
+  - name: silver_pricing_normalized
+    description: "Pricing data normalized to a reference session (30 min, 20 kWh) for apples-to-apples comparison across networks and pricing models"

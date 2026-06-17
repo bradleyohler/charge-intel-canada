@@ -1,0 +1,26 @@
+name: 'charge_intel_canada'
+version: '0.1.0'
+config-version: 2
+
+profile: 'charge_intel_canada'
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+analysis-paths: ["analyses"]
+
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  charge_intel_canada:
+    bronze:
+      +materialized: view
+      +schema: BRONZE
+    silver:
+      +materialized: table
+      +schema: SILVER
+    gold:
+      +materialized: table
+      +schema: GOLD

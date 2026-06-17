@@ -9,8 +9,7 @@ st.set_page_config(page_title="Coverage Map – ChargeIntel Canada", layout="wid
 st.title("EV Charging Coverage Map")
 
 try:
-    df = run_query(
-        """
+    df = run_query("""
         select
             station_id,
             station_name,
@@ -27,8 +26,7 @@ try:
         where status = 'open'
             and latitude is not null
             and longitude is not null
-        """
-    )
+        """)
 except Exception as exc:
     st.error(f"Could not load station data: {exc}")
     st.stop()
@@ -54,11 +52,13 @@ if level == "L2":
 elif level == "DCFC":
     filtered = filtered[filtered["DCFC_PORT_COUNT"] > 0]
 
+
 # Colour: DCFC = orange, L2 = blue
 def get_color(row: dict) -> list[int]:
     if row["DCFC_PORT_COUNT"] and row["DCFC_PORT_COUNT"] > 0:
         return [255, 140, 0, 180]
     return [0, 100, 255, 180]
+
 
 filtered = filtered.copy()
 filtered["color"] = filtered.apply(get_color, axis=1)
@@ -79,5 +79,7 @@ tooltip = {
     "style": {"backgroundColor": "steelblue", "color": "white"},
 }
 
-st.pydeck_chart(pdk.Deck(layers=[layer], initial_view_state=view_state, tooltip=tooltip))
+st.pydeck_chart(
+    pdk.Deck(layers=[layer], initial_view_state=view_state, tooltip=tooltip)
+)
 st.caption(f"Showing {len(filtered):,} of {len(df):,} open stations")

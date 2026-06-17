@@ -9,8 +9,7 @@ st.set_page_config(page_title="Coverage Gaps – ChargeIntel Canada", layout="wi
 st.title("Coverage Gap Analysis")
 
 try:
-    province_df = run_query(
-        """
+    province_df = run_query("""
         select
             province_code,
             province_name_en,
@@ -21,10 +20,8 @@ try:
             open_stations
         from CHARGE_INTEL_CANADA.GOLD.GOLD_COVERAGE_BY_PROVINCE
         order by coverage_score asc
-        """
-    )
-    corridor_df = run_query(
-        """
+        """)
+    corridor_df = run_query("""
         select
             corridor_name,
             approx_length_km,
@@ -34,8 +31,7 @@ try:
             coverage_score
         from CHARGE_INTEL_CANADA.GOLD.GOLD_COVERAGE_CORRIDOR
         order by max_gap_km desc
-        """
-    )
+        """)
 except Exception as exc:
     st.error(f"Could not load coverage data: {exc}")
     st.stop()
@@ -78,7 +74,9 @@ st.altair_chart(port_chart, use_container_width=True)
 st.subheader("Highway Corridor Coverage")
 st.dataframe(
     corridor_df.style.apply(
-        lambda row: ["background-color: #ffcccc" if row["HAS_CRITICAL_GAP"] else "" for _ in row],
+        lambda row: [
+            "background-color: #ffcccc" if row["HAS_CRITICAL_GAP"] else "" for _ in row
+        ],
         axis=1,
     ),
     use_container_width=True,

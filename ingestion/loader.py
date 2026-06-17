@@ -65,6 +65,7 @@ def get_snowflake_connection(
 def _clean_val(v):
     """Convert NaN / numpy scalars to plain Python values the Snowflake driver accepts."""
     import math
+
     if v is None:
         return None
     try:

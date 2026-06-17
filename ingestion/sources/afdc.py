@@ -36,7 +36,9 @@ def fetch_ev_networks(api_key: str, *, use_cache: bool = False) -> pd.DataFrame:
         data = json.loads(cache_file.read_text())
     else:
         try:
-            response = requests.get(NETWORKS_URL, params={"api_key": api_key}, headers=_HEADERS, timeout=60)
+            response = requests.get(
+                NETWORKS_URL, params={"api_key": api_key}, headers=_HEADERS, timeout=60
+            )
             response.raise_for_status()
         except requests.RequestException as exc:
             raise IngestionError(f"AFDC networks request failed: {exc}") from exc
@@ -62,7 +64,9 @@ def fetch_ev_charging_units(api_key: str) -> pd.DataFrame:
         "status": "E,T,P",
     }
     try:
-        response = requests.get(CHARGING_UNITS_URL, params=params, headers=_HEADERS, timeout=120)
+        response = requests.get(
+            CHARGING_UNITS_URL, params=params, headers=_HEADERS, timeout=120
+        )
         response.raise_for_status()
     except requests.RequestException as exc:
         raise IngestionError(f"AFDC charging units request failed: {exc}") from exc
@@ -114,7 +118,9 @@ if __name__ == "__main__":
         networks_df = fetch_ev_networks(config.afdc_api_key, use_cache=True)
         logger.info("Networks DataFrame shape: %s", networks_df.shape)
         if not networks_df.empty:
-            write_to_bronze(networks_df, "AFDC_NETWORKS_RAW", "afdc", config, overwrite=True)
+            write_to_bronze(
+                networks_df, "AFDC_NETWORKS_RAW", "afdc", config, overwrite=True
+            )
         else:
             logger.warning("Networks DataFrame was empty – nothing written")
 
@@ -122,7 +128,9 @@ if __name__ == "__main__":
         units_df = fetch_ev_charging_units(config.afdc_api_key)
         logger.info("Charging units DataFrame shape: %s", units_df.shape)
         if not units_df.empty:
-            write_to_bronze(units_df, "AFDC_CHARGING_UNITS_RAW", "afdc", config, overwrite=True)
+            write_to_bronze(
+                units_df, "AFDC_CHARGING_UNITS_RAW", "afdc", config, overwrite=True
+            )
         else:
             logger.warning("Charging units DataFrame was empty – nothing written")
 

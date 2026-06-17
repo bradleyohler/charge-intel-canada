@@ -19,14 +19,11 @@ class PricingRecord:
     rate_value: float | None
     rate_unit: str
     currency: str
-    scraped_at: datetime = field(
-        default_factory=lambda: datetime.now(timezone.utc)
-    )
+    scraped_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class NetworkPricingScraper(ABC):
     network_name: str
 
     @abstractmethod
-    def scrape(self) -> list[PricingRecord]:
-        ...
+    def scrape(self) -> list[PricingRecord]: ...

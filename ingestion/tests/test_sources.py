@@ -20,7 +20,9 @@ def test_load_config_raises_on_missing_env(monkeypatch: pytest.MonkeyPatch) -> N
 
     from ingestion.config import load_config
 
-    with pytest.raises(EnvironmentError, match="Missing required environment variables"):
+    with pytest.raises(
+        EnvironmentError, match="Missing required environment variables"
+    ):
         load_config()
 
 

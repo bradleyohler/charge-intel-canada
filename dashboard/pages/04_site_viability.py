@@ -10,8 +10,7 @@ st.title("Site Viability Analysis")
 st.info("This feature is planned for Release 4 (v1.0). Partial data may be available.")
 
 try:
-    df = run_query(
-        """
+    df = run_query("""
         select
             fsa,
             province_code,
@@ -22,15 +21,16 @@ try:
         from CHARGE_INTEL_CANADA.GOLD.GOLD_SITE_VIABILITY_SCORE
         order by site_viability_score desc
         limit 500
-        """
-    )
+        """)
 except Exception:
     st.warning("Site viability data is not yet available. Coming in v1.0.")
     st.stop()
 
 provinces = ["All"] + sorted(df["PROVINCE_CODE"].dropna().unique().tolist())
 selected_province = st.sidebar.selectbox("Province", provinces)
-tiers = st.sidebar.multiselect("Viability Tier", ["HIGH", "MEDIUM", "LOW"], default=["HIGH", "MEDIUM", "LOW"])
+tiers = st.sidebar.multiselect(
+    "Viability Tier", ["HIGH", "MEDIUM", "LOW"], default=["HIGH", "MEDIUM", "LOW"]
+)
 
 filtered = df.copy()
 if selected_province != "All":
@@ -46,11 +46,20 @@ chart = (
     .encode(
         x=alt.X("SITE_VIABILITY_SCORE:Q", title="Viability Score"),
         y=alt.Y("FSA:N", sort="-x", title="FSA"),
-        color=alt.Color("VIABILITY_TIER:N", scale=alt.Scale(
-            domain=["HIGH", "MEDIUM", "LOW"],
-            range=["#2ecc71", "#f1c40f", "#e74c3c"],
-        )),
-        tooltip=["FSA", "PROVINCE_CODE", "POPULATION", "SITE_VIABILITY_SCORE", "VIABILITY_TIER"],
+        color=alt.Color(
+            "VIABILITY_TIER:N",
+            scale=alt.Scale(
+                domain=["HIGH", "MEDIUM", "LOW"],
+                range=["#2ecc71", "#f1c40f", "#e74c3c"],
+            ),
+        ),
+        tooltip=[
+            "FSA",
+            "PROVINCE_CODE",
+            "POPULATION",
+            "SITE_VIABILITY_SCORE",
+            "VIABILITY_TIER",
+        ],
     )
     .properties(height=400)
 )

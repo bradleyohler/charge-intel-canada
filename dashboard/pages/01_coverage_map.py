@@ -75,7 +75,10 @@ layer = pdk.Layer(
 view_state = pdk.ViewState(latitude=56.0, longitude=-96.0, zoom=3.5, pitch=0)
 
 tooltip = {
-    "html": "<b>{STATION_NAME}</b><br/>{NETWORK_NAME}<br/>Ports: {TOTAL_PORT_COUNT}<br/>Open: {OPEN_DATE}",
+    "html": (
+        "<b>{STATION_NAME}</b><br/>{NETWORK_NAME}"
+        "<br/>Ports: {TOTAL_PORT_COUNT}<br/>Open: {OPEN_DATE}"
+    ),
     "style": {"backgroundColor": "steelblue", "color": "white"},
 }
 

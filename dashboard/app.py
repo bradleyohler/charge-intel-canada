@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import streamlit as st
+
 from dashboard.utils.snowflake_conn import run_query
 
 st.set_page_config(
@@ -24,7 +25,8 @@ st.sidebar.markdown("""
 # Last updated timestamp
 try:
     result = run_query(
-        "select max(_ingested_at) as last_updated from CHARGE_INTEL_CANADA.BRONZE.AFDC_STATIONS_RAW"
+        "select max(_ingested_at) as last_updated"
+        " from CHARGE_INTEL_CANADA.BRONZE.AFDC_STATIONS_RAW"
     )
     last_updated = result["LAST_UPDATED"].iloc[0]
     if last_updated:

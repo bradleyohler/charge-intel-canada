@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pandas as pd
@@ -63,7 +63,7 @@ def get_snowflake_connection(
 
 
 def _clean_val(v):
-    """Convert NaN / numpy scalars to plain Python values the Snowflake driver accepts."""
+    """Convert NaN / numpy scalars to Python values the Snowflake driver accepts."""
     import math
 
     if v is None:
@@ -100,9 +100,6 @@ def write_to_bronze(
         ddl = f'CREATE OR REPLACE TABLE BRONZE."{tbl}" ({col_defs})'
     else:
         ddl = f'CREATE TABLE IF NOT EXISTS BRONZE."{tbl}" ({col_defs})'
-
-    placeholders = ", ".join(["%s"] * (len(data_cols) + 2))
-    dml = f'INSERT INTO BRONZE."{tbl}" VALUES ({placeholders})'
 
     # Build row tuples without mutating the DataFrame
     rows = [

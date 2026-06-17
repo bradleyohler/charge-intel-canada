@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-import pytest
+from unittest.mock import MagicMock, patch
+
 import pandas as pd
-from unittest.mock import patch, MagicMock
+import pytest
 
 
 def test_load_config_raises_on_missing_env(monkeypatch: pytest.MonkeyPatch) -> None:

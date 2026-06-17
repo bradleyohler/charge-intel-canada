@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
 import snowflake.connector
@@ -28,18 +29,19 @@ _SNOWFLAKE_TYPE_MAP = {
 }
 
 
-def _sf_type(dtype) -> str:
+def _sf_type(dtype: Any) -> str:
     return _SNOWFLAKE_TYPE_MAP.get(str(dtype), "TEXT")
 
 
 def _load_private_key(path: str) -> bytes:
     key_bytes = Path(path).read_bytes()
     private_key = load_pem_private_key(key_bytes, password=None)
-    return private_key.private_bytes(
+    der: bytes = private_key.private_bytes(  # type: ignore[assignment]
         encoding=Encoding.DER,
         format=PrivateFormat.PKCS8,
         encryption_algorithm=NoEncryption(),
     )
+    return der
 
 
 _INSERT_BATCH = 500  # rows per multi-row INSERT statement
@@ -62,7 +64,7 @@ def get_snowflake_connection(
     )
 
 
-def _clean_val(v):
+def _clean_val(v: Any) -> Any:
     """Convert NaN / numpy scalars to Python values the Snowflake driver accepts."""
     import math
 

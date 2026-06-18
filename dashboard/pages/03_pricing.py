@@ -9,7 +9,8 @@ st.set_page_config(page_title="Pricing – ChargeIntel Canada", layout="wide")
 st.title("EV Charging Pricing Transparency")
 
 try:
-    pricing_df = run_query("""
+    pricing_df = run_query(
+        """
         select
             network_name,
             province_code,
@@ -22,7 +23,8 @@ try:
             national_rank
         from CHARGE_INTEL_CANADA.GOLD.GOLD_NETWORK_PRICING_COMPARISON
         where normalized_kwh_rate is not null
-        """)
+        """
+    )
 except Exception as exc:
     st.error(f"Could not load pricing data: {exc}")
     st.stop()
@@ -58,7 +60,8 @@ else:
     st.info("No pricing data available for this province yet.")
 
 with st.expander("Methodology"):
-    st.markdown("""
+    st.markdown(
+        """
 **Reference session profile used for normalization:**
 - Session duration: 30 minutes
 - Energy delivered: 20 kWh (equivalent to a 40 kWh DCFC session at ~65% efficiency)
@@ -72,4 +75,5 @@ Pricing models are normalized as follows:
 | flat_fee | rate_value / 20 |
 | session_plus_kwh | (session_fee / 20) + per_kwh_rate |
 | unknown | NULL |
-""")
+"""
+    )

@@ -9,7 +9,8 @@ st.set_page_config(page_title="Coverage Map – ChargeIntel Canada", layout="wid
 st.title("EV Charging Coverage Map")
 
 try:
-    df = run_query("""
+    df = run_query(
+        """
         select
             station_id,
             station_name,
@@ -26,7 +27,8 @@ try:
         where status = 'open'
             and latitude is not null
             and longitude is not null
-        """)
+        """
+    )
 except Exception as exc:
     st.error(f"Could not load station data: {exc}")
     st.stop()

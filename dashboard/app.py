@@ -15,12 +15,14 @@ st.caption("EV charging coverage gaps and pricing transparency for Canada")
 
 # Sidebar navigation hint
 st.sidebar.title("Navigation")
-st.sidebar.markdown("""
+st.sidebar.markdown(
+    """
 - [Coverage Map](01_coverage_map)
 - [Coverage Gaps](02_coverage_gaps)
 - [Pricing](03_pricing)
 - [Site Viability](04_site_viability)
-""")
+"""
+)
 
 # Last updated timestamp
 try:

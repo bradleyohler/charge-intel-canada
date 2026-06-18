@@ -3,4 +3,5 @@ black==24.4.2
 ruff==0.4.10
 pytest==8.2.2
 mypy==1.10.1
+types-requests==2.32.0.20240602
 pytest-mock==3.14.0

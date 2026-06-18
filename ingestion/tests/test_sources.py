@@ -8,6 +8,8 @@ import requests
 
 
 def test_load_config_raises_on_missing_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    from ingestion.config import load_config
+
     env_vars = [
         "AFDC_API_KEY",
         "SNOWFLAKE_ACCOUNT",
@@ -19,8 +21,6 @@ def test_load_config_raises_on_missing_env(monkeypatch: pytest.MonkeyPatch) -> N
     ]
     for var in env_vars:
         monkeypatch.delenv(var, raising=False)
-
-    from ingestion.config import load_config
 
     with pytest.raises(
         EnvironmentError, match="Missing required environment variables"
@@ -184,3 +184,95 @@ def test_fetch_circuit_electrique_raises_on_http_error() -> None:
 
         with pytest.raises(IngestionError):
             fetch_circuit_electrique()
+
+
+# ---------------------------------------------------------------------------
+# CER Rates tests
+# ---------------------------------------------------------------------------
+
+_CER_HTML_WITH_RATE = (
+    "<p>The residential flat rate is 9.87 ¢/kW.h including all taxes.</p>"
+)
+_CER_HTML_NO_RATE = "<p>No pricing data available here.</p>"
+_CER_HTML_TD_RATE = "<table><tr><td>8.45 ¢/kW.h</td></tr></table>"
+
+
+def test_fetch_cer_rates_returns_dataframe() -> None:
+    mock_response = MagicMock()
+    mock_response.text = _CER_HTML_WITH_RATE
+    mock_response.raise_for_status = MagicMock()
+
+    with patch("requests.get", return_value=mock_response):
+        from ingestion.sources.cer_rates import fetch_cer_rates
+
+        result = fetch_cer_rates()
+
+    assert isinstance(result, pd.DataFrame)
+    required_columns = [
+        "province_code",
+        "rate_type",
+        "period",
+        "rate_value",
+        "rate_unit",
+        "effective_date",
+    ]
+    for col in required_columns:
+        assert col in result.columns, f"Expected column '{col}' missing from result"
+    assert len(result) > 0
+
+
+def test_fetch_cer_rates_drops_provinces_with_no_rate_in_html() -> None:
+    mock_response = MagicMock()
+    mock_response.text = _CER_HTML_NO_RATE
+    mock_response.raise_for_status = MagicMock()
+
+    with patch("requests.get", return_value=mock_response):
+        from ingestion import IngestionError
+        from ingestion.sources.cer_rates import fetch_cer_rates
+
+        with pytest.raises(IngestionError):
+            fetch_cer_rates()
+
+
+def test_fetch_cer_rates_skips_provinces_with_http_error() -> None:
+    with patch("requests.get", side_effect=requests.HTTPError()):
+        from ingestion import IngestionError
+        from ingestion.sources.cer_rates import fetch_cer_rates
+
+        with pytest.raises(IngestionError):
+            fetch_cer_rates()
+
+
+def test_fetch_cer_rates_rate_value_is_float() -> None:
+    mock_response = MagicMock()
+    mock_response.text = _CER_HTML_TD_RATE
+    mock_response.raise_for_status = MagicMock()
+
+    with patch("requests.get", return_value=mock_response):
+        from ingestion.sources.cer_rates import fetch_cer_rates
+
+        result = fetch_cer_rates()
+
+    assert pd.api.types.is_float_dtype(
+        result["rate_value"]
+    ), f"Expected float dtype for rate_value, got {result['rate_value'].dtype}"
+
+
+def test_fetch_cer_rates_province_codes_are_uppercase_two_letter() -> None:
+    mock_response = MagicMock()
+    mock_response.text = _CER_HTML_WITH_RATE
+    mock_response.raise_for_status = MagicMock()
+
+    with patch("requests.get", return_value=mock_response):
+        from ingestion.sources.cer_rates import fetch_cer_rates
+
+        result = fetch_cer_rates()
+
+    import re as _re
+
+    for code in result["province_code"]:
+        assert isinstance(code, str), f"province_code {code!r} is not a string"
+        assert len(code) == 2, f"province_code {code!r} is not 2 characters"
+        assert _re.match(
+            r"^[A-Z]{2}$", code
+        ), f"province_code {code!r} does not match ^[A-Z]{{2}}$"

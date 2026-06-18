@@ -42,9 +42,17 @@ models:
           - not_null
 
   - name: silver_electricity_rates
-    description: "Cleaned electricity rates from Canada Energy Regulator, one row per province per rate type"
+    description: "Cleaned electricity rates from Canada Energy Regulator, one row per province per rate type. At minimum one residential flat rate row per province (13 total)."
     columns:
       - name: province_code
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['AB', 'BC', 'MB', 'NB', 'NL', 'NS', 'NT', 'NU', 'ON', 'PE', 'QC', 'SK', 'YT']
+      - name: rate_type
+        tests:
+          - not_null
+      - name: rate_value
         tests:
           - not_null
 

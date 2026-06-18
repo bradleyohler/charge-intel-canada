@@ -10,7 +10,8 @@ st.title("Site Viability Analysis")
 st.info("This feature is planned for Release 4 (v1.0). Partial data may be available.")
 
 try:
-    df = run_query("""
+    df = run_query(
+        """
         select
             fsa,
             province_code,
@@ -21,7 +22,8 @@ try:
         from CHARGE_INTEL_CANADA.GOLD.GOLD_SITE_VIABILITY_SCORE
         order by site_viability_score desc
         limit 500
-        """)
+        """
+    )
 except Exception:
     st.warning("Site viability data is not yet available. Coming in v1.0.")
     st.stop()

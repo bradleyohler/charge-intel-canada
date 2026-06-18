@@ -59,17 +59,32 @@ def fetch_statcan_population() -> pd.DataFrame:
 
     try:
         content = response.content
-        # StatCan serves the CSV inside a ZIP archive (magic bytes PK\x03\x04)
         if content[:4] == b"PK\x03\x04":
+            # StatCan sometimes serves a ZIP archive
             with zipfile.ZipFile(BytesIO(content)) as zf:
                 csv_names = [n for n in zf.namelist() if n.lower().endswith(".csv")]
                 if not csv_names:
                     raise IngestionError("StatCan ZIP contains no CSV files")
                 logger.info("Extracting %r from StatCan ZIP", csv_names[0])
                 with zf.open(csv_names[0]) as f:
-                    raw = pd.read_csv(f, encoding="latin-1")
+                    csv_bytes = f.read()
         else:
-            raw = pd.read_csv(BytesIO(content), encoding="latin-1")
+            csv_bytes = content
+
+        # StatCan CSVs have a variable-length metadata preamble before the
+        # real header row. Find the header by scanning for a known column name.
+        lines = csv_bytes.decode("latin-1").splitlines()
+        header_idx = next(
+            (i for i, line in enumerate(lines) if "ALT_GEO_CODE" in line),
+            None,
+        )
+        if header_idx is None:
+            raise IngestionError(
+                "StatCan CSV: could not locate header row "
+                f"(first 10 lines: {lines[:10]!r})"
+            )
+        logger.info("StatCan header row at line %d", header_idx)
+        raw = pd.read_csv(BytesIO(csv_bytes), encoding="latin-1", skiprows=header_idx)
     except IngestionError:
         raise
     except Exception as exc:

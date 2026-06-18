@@ -33,11 +33,11 @@ def load_config() -> Config:
     if missing:
         raise EnvironmentError(f"Missing required environment variables: {missing}")
     return Config(
-        afdc_api_key=os.environ["AFDC_API_KEY"],
-        snowflake_account=os.environ["SNOWFLAKE_ACCOUNT"],
-        snowflake_user=os.environ["SNOWFLAKE_USER"],
-        snowflake_private_key_path=os.environ["SNOWFLAKE_PRIVATE_KEY_PATH"],
-        snowflake_warehouse=os.environ["SNOWFLAKE_WAREHOUSE"],
-        snowflake_database=os.environ["SNOWFLAKE_DATABASE"],
-        snowflake_role=os.environ["SNOWFLAKE_ROLE"],
+        afdc_api_key=os.environ["AFDC_API_KEY"].strip(),
+        snowflake_account=os.environ["SNOWFLAKE_ACCOUNT"].strip(),
+        snowflake_user=os.environ["SNOWFLAKE_USER"].strip(),
+        snowflake_private_key_path=os.environ["SNOWFLAKE_PRIVATE_KEY_PATH"].strip(),
+        snowflake_warehouse=os.environ["SNOWFLAKE_WAREHOUSE"].strip(),
+        snowflake_database=os.environ["SNOWFLAKE_DATABASE"].strip(),
+        snowflake_role=os.environ["SNOWFLAKE_ROLE"].strip(),
     )

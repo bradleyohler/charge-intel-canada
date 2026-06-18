@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 STATCAN_URL = (
     "https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/details/"
-    "download-telecharger/comp/GetFile.cfm?Lang=E&FILETYPE=CSV&GEONO=044"
+    "download-telecharger/comp/GetFile.cfm?Lang=E&FILETYPE=CSV&GEONO=013"
 )
 
 _FSA_FIRST_CHAR_MAP: dict[str, str] = {

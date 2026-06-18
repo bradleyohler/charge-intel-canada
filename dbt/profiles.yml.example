@@ -5,7 +5,6 @@ charge_intel_canada:
       type: snowflake
       account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
       user: "{{ env_var('SNOWFLAKE_USER') }}"
-      authenticator: jwt
       private_key_path: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PATH') }}"
       role: "{{ env_var('SNOWFLAKE_ROLE') }}"
       database: "{{ env_var('SNOWFLAKE_DATABASE') }}"

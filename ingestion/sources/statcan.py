@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import zipfile
 from io import BytesIO
 
 import pandas as pd
@@ -57,11 +58,24 @@ def fetch_statcan_population() -> pd.DataFrame:
         raise IngestionError(f"StatCan download failed: {exc}") from exc
 
     try:
-        raw = pd.read_csv(BytesIO(response.content), encoding="latin-1")
+        content = response.content
+        # StatCan serves the CSV inside a ZIP archive (magic bytes PK\x03\x04)
+        if content[:4] == b"PK\x03\x04":
+            with zipfile.ZipFile(BytesIO(content)) as zf:
+                csv_names = [n for n in zf.namelist() if n.lower().endswith(".csv")]
+                if not csv_names:
+                    raise IngestionError("StatCan ZIP contains no CSV files")
+                logger.info("Extracting %r from StatCan ZIP", csv_names[0])
+                with zf.open(csv_names[0]) as f:
+                    raw = pd.read_csv(f, encoding="latin-1")
+        else:
+            raw = pd.read_csv(BytesIO(content), encoding="latin-1")
+    except IngestionError:
+        raise
     except Exception as exc:
         raise IngestionError(f"StatCan CSV parse failed: {exc}") from exc
 
-    logger.info("StatCan raw shape: %s", raw.shape)
+    logger.info("StatCan raw shape: %s, columns: %s", raw.shape, list(raw.columns))
 
     # Filter to FSA-level rows only
     fsa_rows = raw[raw["GEO_LEVEL"] == "Forward sortation area"].copy()

@@ -16,7 +16,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install linting tools
-        run: pip install black ruff mypy
+        run: pip install -r requirements-dev.txt
 
       - name: black format check
         run: black --check .

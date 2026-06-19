@@ -795,6 +795,14 @@ A release is complete when ALL of the following are true.
 
 ---
 
+## Known Issues / Future Bug Fixes
+
+Tech debt and bugs identified during development that are not release blockers. Address opportunistically or pull into a future release's scope.
+
+- [ ] **`BRONZE.PRICING_SCRAPE_RAW` columns are all `VARCHAR` instead of typed columns.** `ingestion/sources/pricing_scrapers.py` builds its output DataFrame with `dtype=object` across every column (a workaround for a pandas/datetime crash when inferring `datetime64` from tz-aware `datetime` objects), so `loader.py`'s dtype-based DDL generation falls back to `TEXT` for everything — including `RATE_VALUE`, `SESSION_FEE_VALUE`, and `SCRAPED_AT`, which should be `FLOAT`/`TIMESTAMP`. Confirmed via live run (2026-06-19) that values themselves are clean (numeric strings, real SQL `NULL` for missing `session_fee_value`) and `silver_pricing_raw`'s `CAST(...)` calls handle the conversion correctly, so this is not currently breaking the pipeline. Risk: any future query against `BRONZE.PRICING_SCRAPE_RAW` that compares these columns numerically without an explicit cast will silently fall back to string comparison. Fix: construct the DataFrame with explicit per-column dtypes (or convert `scraped_at` to ISO-format strings before `pd.DataFrame()` construction to dodge the datetime64 inference path) so numeric/timestamp columns get proper Snowflake types.
+
+---
+
 ## Decision Rules
 
 Apply these rules whenever an ambiguous situation arises. Do not deviate without human approval.

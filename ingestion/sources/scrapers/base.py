@@ -20,6 +20,9 @@ class PricingRecord:
     rate_unit: str
     currency: str
     scraped_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    # Only set when pricing_model == "session_plus_kwh": rate_value holds the
+    # per-kWh component, session_fee_value holds the flat per-session fee.
+    session_fee_value: float | None = None
 
 
 class NetworkPricingScraper(ABC):

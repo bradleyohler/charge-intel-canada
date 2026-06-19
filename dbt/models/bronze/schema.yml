@@ -88,6 +88,8 @@ sources:
           - name: membership_tier
           - name: pricing_model
           - name: rate_value
+          - name: session_fee_value
+            description: "Flat per-session fee component, only populated when pricing_model = 'session_plus_kwh'"
           - name: rate_unit
           - name: currency
           - name: scraped_at

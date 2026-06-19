@@ -10,6 +10,7 @@ select
     membership_tier,
     pricing_model,
     rate_value,
+    session_fee_value,
     rate_unit,
     currency,
     scraped_at,

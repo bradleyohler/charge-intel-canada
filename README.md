@@ -80,6 +80,10 @@ cd ..
 
 # 5. Install Python dependencies
 pip install -r requirements.txt -r requirements-dev.txt
+pip install -e . --no-deps
+# The editable install registers `dashboard` and `ingestion` as importable
+# packages regardless of cwd – required because `streamlit run` only adds
+# the script's own directory to sys.path, not the repo root.
 
 # 6. Run ingestion
 python -m ingestion.sources.afdc

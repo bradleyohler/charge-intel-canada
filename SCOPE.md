@@ -752,8 +752,8 @@ A release is complete when ALL of the following are true.
 - [x] Streamlit app runs locally with `streamlit run dashboard/app.py`
 - [x] Coverage map page shows station markers on a Canada map
 - [x] Province summary table is present with port counts visible
-- [ ] App is deployed to Streamlit Community Cloud and publicly accessible via URL
-- [ ] `README.md` includes live dashboard URL
+- [x] App is deployed to Streamlit Community Cloud and publicly accessible via URL
+- [x] `README.md` includes live dashboard URL
 - [ ] GitHub release `v0.1` is tagged
 
 ### Release 2 – Coverage Gap Intelligence ✓ done when:

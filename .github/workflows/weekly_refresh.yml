@@ -24,6 +24,7 @@ jobs:
           python -m ingestion.sources.afdc
           python -m ingestion.sources.circuit_electrique
           python -m ingestion.sources.cer_rates
+          python -m ingestion.sources.pricing_scrapers
         env:
           AFDC_API_KEY: ${{ secrets.AFDC_API_KEY }}
           SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}

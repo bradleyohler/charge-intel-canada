@@ -12,7 +12,8 @@ with corridors as (
         corridor_name,
         description,
         approx_length_km,
-        highway_numbers
+        highway_numbers,
+        province_codes
     from {{ ref('corridors') }}
 ),
 

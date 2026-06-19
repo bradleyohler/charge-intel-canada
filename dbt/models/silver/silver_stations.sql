@@ -162,4 +162,28 @@ status_mapped as (
     from deduped
 )
 
-select * from status_mapped
+select
+    station_id,
+    station_name,
+    street_address,
+    city,
+    province_code,
+    postal_code,
+    latitude,
+    longitude,
+    status,
+    l1_port_count,
+    l2_port_count,
+    dcfc_port_count,
+    total_port_count,
+    fsa,
+    network_name,
+    network_url,
+    pricing_raw_en,
+    pricing_raw_fr,
+    open_date,
+    is_workplace,
+    source_updated_at,
+    _ingested_at,
+    data_source
+from status_mapped

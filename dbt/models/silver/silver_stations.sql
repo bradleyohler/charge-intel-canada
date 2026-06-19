@@ -63,53 +63,70 @@ ce_raw as (
     from {{ ref('bronze_circuit_electrique') }}
     where latitude is not null
         and longitude is not null
+    qualify row_number() over (
+        partition by latitude, longitude order by _ingested_at desc
+    ) = 1
 ),
 
--- CE stations that are NOT within 0.001 degrees of any AFDC station
+-- CE stations with no matching AFDC station within 0.001 degrees (net-new locations)
 ce_new_only as (
     select ce.*
     from ce_raw as ce
-    where not exists (
-        select 1
-        from afdc_raw as a
-        where abs(a.latitude - ce.latitude) <= 0.001
-            and abs(a.longitude - ce.longitude) <= 0.001
-    )
+    left join afdc_raw as a
+        on abs(a.latitude - ce.latitude) <= 0.001
+        and abs(a.longitude - ce.longitude) <= 0.001
+    where a.station_id is null
 ),
 
--- For Quebec, prefer CE over AFDC where they share the same location
-afdc_non_qc_overlap as (
+-- Non-QC AFDC stations are always kept as-is
+afdc_non_qc as (
     select a.*
     from afdc_raw as a
     where a.province_code != 'QC'
 ),
 
+-- QC AFDC stations where CE has no matching record (no CE alternative exists)
 afdc_qc_no_ce_match as (
     select a.*
     from afdc_raw as a
+    left join ce_raw as ce
+        on abs(a.latitude - ce.latitude) <= 0.001
+        and abs(a.longitude - ce.longitude) <= 0.001
     where a.province_code = 'QC'
-        and not exists (
-            select 1
-            from ce_raw as ce
-            where abs(a.latitude - ce.latitude) <= 0.001
-                and abs(a.longitude - ce.longitude) <= 0.001
-        )
+        and ce.latitude is null
+),
+
+-- QC CE stations that overlap with AFDC (CE is preferred for these locations)
+ce_qc_afdc_overlap as (
+    select distinct ce.*
+    from ce_raw as ce
+    inner join afdc_raw as a
+        on abs(a.latitude - ce.latitude) <= 0.001
+        and abs(a.longitude - ce.longitude) <= 0.001
+    where ce.province_code = 'QC'
 ),
 
 combined as (
-    select * from afdc_non_qc_overlap
+    select * from afdc_non_qc
     union all
     select * from afdc_qc_no_ce_match
     union all
-    select * from ce_raw
-        where province_code = 'QC'
-            and exists (
-                select 1 from afdc_raw as a
-                where abs(a.latitude - ce_raw.latitude) <= 0.001
-                    and abs(a.longitude - ce_raw.longitude) <= 0.001
-            )
+    select * from ce_qc_afdc_overlap
     union all
     select * from ce_new_only
+),
+
+-- Final deduplication: circuit_electrique preferred over afdc for any station_id
+-- that appears in multiple union branches (e.g. a QC station whose AFDC counterpart
+-- was filtered from afdc_raw, causing it to land in both ce_qc_afdc_overlap
+-- and ce_new_only).
+deduped as (
+    select *
+    from combined
+    qualify row_number() over (
+        partition by station_id
+        order by case data_source when 'circuit_electrique' then 1 else 2 end
+    ) = 1
 ),
 
 status_mapped as (
@@ -142,7 +159,7 @@ status_mapped as (
         source_updated_at,
         _ingested_at,
         data_source
-    from combined
+    from deduped
 )
 
 select * from status_mapped

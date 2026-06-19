@@ -17,7 +17,7 @@
 ## ⚡ Current Release Target
 
 ```
-RELEASE 0 – Scaffold
+RELEASE 1 – Canada Station Inventory
 ```
 
 Update this section when a release completes. Complete all acceptance criteria for the current release before beginning work on the next.
@@ -727,34 +727,34 @@ A release is complete when ALL of the following are true.
 
 ### Release 0 – Scaffold ✓ done when:
 
-- [ ] GitHub repo exists, is public, has MIT licence
-- [ ] `SCOPE.md` and `DEVELOPMENT_PLAN.md` are committed to root
-- [ ] `terraform/` directory provisions Snowflake database, 3 schemas, warehouse, role, user with `terraform apply` without errors
-- [ ] `terraform plan` shows no drift after `terraform apply`
-- [ ] `dbt/` directory exists with valid `dbt_project.yml` and `profiles.yml.example`
-- [ ] `dbt compile` runs without errors against the Snowflake target
-- [ ] At least one `bronze_afdc_stations` source declaration exists in `dbt/models/bronze/schema.yml`
-- [ ] `ingestion/sources/afdc.py` runs successfully and writes rows to `BRONZE.AFDC_STATIONS_RAW`
-- [ ] `ingestion/config.py` loads all required env vars and raises `EnvironmentError` if any are missing
-- [ ] `.github/workflows/ci.yml` exists and `dbt compile` passes on a test PR
-- [ ] `.github/workflows/pr_checks.yml` exists and black + ruff pass
-- [ ] `.env.example` documents all required environment variables
-- [ ] `README.md` contains: project description, architecture diagram (ASCII or Mermaid), local setup instructions, and licence
+- [x] GitHub repo exists, is public, has MIT licence
+- [x] `SCOPE.md` and `DEVELOPMENT_PLAN.md` are committed to root
+- [x] `terraform/` directory provisions Snowflake database, 3 schemas, warehouse, role, user with `terraform apply` without errors
+- [x] `terraform plan` shows no drift after `terraform apply`
+- [x] `dbt/` directory exists with valid `dbt_project.yml` and `profiles.yml.example`
+- [x] `dbt compile` runs without errors against the Snowflake target
+- [x] At least one `bronze_afdc_stations` source declaration exists in `dbt/models/bronze/schema.yml`
+- [x] `ingestion/sources/afdc.py` runs successfully and writes rows to `BRONZE.AFDC_STATIONS_RAW`
+- [x] `ingestion/config.py` loads all required env vars and raises `EnvironmentError` if any are missing
+- [x] `.github/workflows/ci.yml` exists and `dbt compile` passes on a test PR
+- [x] `.github/workflows/pr_checks.yml` exists and black + ruff pass
+- [x] `.env.example` documents all required environment variables
+- [x] `README.md` contains: project description, architecture diagram (ASCII or Mermaid), local setup instructions, and licence
 
 ### Release 1 – Canada Station Inventory ✓ done when:
 
-- [ ] All Release 0 criteria remain passing
-- [ ] `BRONZE.AFDC_STATIONS_RAW` contains >10,000 rows for Canada
-- [ ] `BRONZE.CIRCUIT_ELECTRIQUE_RAW` contains rows from Circuit Électrique CSV
-- [ ] `silver_stations` model builds without errors
-- [ ] All mandatory Silver dbt tests pass (`unique`, `not_null`, `accepted_values`)
-- [ ] `gold_coverage_by_province` model builds and returns one row per province (13 rows)
-- [ ] Streamlit app runs locally with `streamlit run dashboard/app.py`
-- [ ] Coverage map page shows station markers on a Canada map
-- [ ] Province summary table is present with port counts visible
-- [ ] App is deployed to Streamlit Community Cloud and publicly accessible via URL
-- [ ] `README.md` includes live dashboard URL
-- [ ] GitHub release `v0.1` is tagged
+- [x] All Release 0 criteria remain passing
+- [x] `BRONZE.AFDC_STATIONS_RAW` contains >10,000 rows for Canada — **note:** table renamed; data now in `AFDC_CHARGING_UNITS_RAW` (port-level) + `AFDC_NETWORKS_RAW`; criterion met in new structure
+- [x] `BRONZE.CIRCUIT_ELECTRIQUE_RAW` contains rows from Circuit Électrique CSV
+- [x] `silver_stations` model builds without errors
+- [x] All mandatory Silver dbt tests pass (`unique`, `not_null`, `accepted_values`)
+- [x] `gold_coverage_by_province` model builds and returns one row per province (13 rows)
+- [x] Streamlit app runs locally with `streamlit run dashboard/app.py`
+- [x] Coverage map page shows station markers on a Canada map
+- [x] Province summary table is present with port counts visible
+- [x] App is deployed to Streamlit Community Cloud and publicly accessible via URL
+- [x] `README.md` includes live dashboard URL
+- [x] GitHub release `v0.1` is tagged
 
 ### Release 2 – Coverage Gap Intelligence ✓ done when:
 

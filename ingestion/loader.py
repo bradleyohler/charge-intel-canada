@@ -118,7 +118,8 @@ def write_to_bronze(
                 logger.info("Deleted existing rows from BRONZE.%s", tbl)
             except snowflake.connector.errors.ProgrammingError as exc:
                 logger.warning(
-                    "Could not delete existing rows from BRONZE.%s (permission error – will INSERT over existing): %s",
+                    "Could not delete existing rows from BRONZE.%s "
+                    "(permission error – will INSERT over existing): %s",
                     tbl,
                     exc,
                 )

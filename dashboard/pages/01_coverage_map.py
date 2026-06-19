@@ -88,3 +88,32 @@ st.pydeck_chart(
     pdk.Deck(layers=[layer], initial_view_state=view_state, tooltip=tooltip)
 )
 st.caption(f"Showing {len(filtered):,} of {len(df):,} open stations")
+
+st.subheader("Port Counts by Province")
+try:
+    province_df = run_query(
+        """
+        select
+            province_code,
+            province_name_en,
+            open_stations,
+            total_ports,
+            l2_ports,
+            dcfc_ports,
+            ports_per_100k_pop
+        from CHARGE_INTEL_CANADA.GOLD.GOLD_COVERAGE_BY_PROVINCE
+        order by province_name_en
+        """
+    )
+    province_df.columns = [
+        "Province",
+        "Province Name",
+        "Open Stations",
+        "Total Ports",
+        "L2 Ports",
+        "DCFC Ports",
+        "Ports per 100K Pop",
+    ]
+    st.dataframe(province_df, use_container_width=True, hide_index=True)
+except Exception as exc:
+    st.warning(f"Could not load province summary: {exc}")

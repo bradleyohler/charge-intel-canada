@@ -96,7 +96,12 @@ sources:
 
 models:
   - name: bronze_afdc_stations
-    description: "View over AFDC_STATIONS_RAW – no transformations"
+    description: >
+      Aggregates AFDC_CHARGING_UNITS_RAW (port-level rows) to one row per station.
+      Counts ports by EV level (l1/l2/dcfc) and aliases raw column names to the
+      interface expected by silver_stations.
+  - name: bronze_afdc_networks
+    description: "Pass-through view over AFDC_NETWORKS_RAW – no transformations"
   - name: bronze_circuit_electrique
     description: "View over CIRCUIT_ELECTRIQUE_RAW – no transformations"
   - name: bronze_cer_rates

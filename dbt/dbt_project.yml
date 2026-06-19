@@ -13,6 +13,10 @@ analysis-paths: ["analyses"]
 target-path: "target"
 clean-targets: ["target", "dbt_packages"]
 
+seeds:
+  charge_intel_canada:
+    +schema: BRONZE
+
 models:
   charge_intel_canada:
     bronze:

@@ -21,6 +21,7 @@ normalized as (
         membership_tier,
         pricing_model,
         rate_value,
+        session_fee_value,
         rate_unit,
         currency,
         scraped_at,
@@ -29,6 +30,7 @@ normalized as (
             when 'per_kwh'          then rate_value
             when 'per_minute'       then (rate_value * 30.0) / 20.0
             when 'flat_fee'         then rate_value / 20.0
+            when 'session_plus_kwh' then (coalesce(session_fee_value, 0) / 20.0) + rate_value
             when 'unknown'          then null
             else null
         end as normalized_kwh_rate,

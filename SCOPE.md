@@ -17,7 +17,7 @@
 ## ⚡ Current Release Target
 
 ```
-RELEASE 2 – Coverage Gap Intelligence
+RELEASE 3 – Pricing Transparency
 ```
 
 Update this section when a release completes. Complete all acceptance criteria for the current release before beginning work on the next.
@@ -772,15 +772,15 @@ A release is complete when ALL of the following are true.
 
 ### Release 3 – Pricing Transparency ✓ done when:
 
-- [ ] All Release 2 criteria remain passing
-- [ ] `NetworkPricingScraper` base class is implemented in `ingestion/sources/scrapers/base.py`
-- [ ] At least 5 of the 8 scrapers run successfully and return non-empty DataFrames
-- [ ] `BRONZE.PRICING_SCRAPE_RAW` contains rows from ≥5 networks
-- [ ] `silver_pricing_normalized` builds without errors; `normalized_kwh_rate` is non-null for at least 80% of rows with a known `pricing_model`
-- [ ] `gold_network_pricing_comparison` builds and contains rows for ≥5 networks
-- [ ] Pricing page shows a network comparison bar chart for at least one province
-- [ ] `weekly_refresh.yml` includes scraper execution step
-- [ ] GitHub release `v0.3` is tagged
+- [x] All Release 2 criteria remain passing
+- [x] `NetworkPricingScraper` base class is implemented in `ingestion/sources/scrapers/base.py`
+- [x] At least 5 of the 8 scrapers run successfully and return non-empty DataFrames — **note:** 7 of 7 implemented scrapers (FLO, ChargePoint CA, Electrify Canada, BC Hydro EV, Tesla, Petro-Canada, IVY) return non-empty data; Circuit Électrique pricing scraper not implemented (station-data ingestion for CE already exists separately, so 7/8 satisfies the ≥5 bar)
+- [x] `BRONZE.PRICING_SCRAPE_RAW` contains rows from ≥5 networks
+- [x] `silver_pricing_normalized` builds without errors; `normalized_kwh_rate` is non-null for at least 80% of rows with a known `pricing_model` — **note:** added `session_fee_value` to `PricingRecord`/bronze/silver to correctly normalize `session_plus_kwh` records (was previously always NULL in the original spec's single-`rate_value` schema)
+- [x] `gold_network_pricing_comparison` builds and contains rows for ≥5 networks
+- [x] Pricing page shows a network comparison bar chart for at least one province
+- [x] `weekly_refresh.yml` includes scraper execution step
+- [x] GitHub release `v0.3` is tagged
 
 ### Release 4 – Integrated Intelligence Platform ✓ done when:
 
@@ -792,6 +792,16 @@ A release is complete when ALL of the following are true.
 - [ ] All model descriptions in `schema.yml` are populated (no blank descriptions)
 - [ ] `README.md` includes: data lineage diagram, `how to run locally` section, contribution guide
 - [ ] GitHub release `v1.0` is tagged
+
+---
+
+## Known Issues / Future Bug Fixes
+
+Tech debt and bugs identified during development that are not release blockers. Address opportunistically or pull into a future release's scope.
+
+- [ ] **`BRONZE.PRICING_SCRAPE_RAW` columns are all `VARCHAR` instead of typed columns.** `ingestion/sources/pricing_scrapers.py` builds its output DataFrame with `dtype=object` across every column (a workaround for a pandas/datetime crash when inferring `datetime64` from tz-aware `datetime` objects), so `loader.py`'s dtype-based DDL generation falls back to `TEXT` for everything — including `RATE_VALUE`, `SESSION_FEE_VALUE`, and `SCRAPED_AT`, which should be `FLOAT`/`TIMESTAMP`. Confirmed via live run (2026-06-19) that values themselves are clean (numeric strings, real SQL `NULL` for missing `session_fee_value`) and `silver_pricing_raw`'s `CAST(...)` calls handle the conversion correctly, so this is not currently breaking the pipeline. Risk: any future query against `BRONZE.PRICING_SCRAPE_RAW` that compares these columns numerically without an explicit cast will silently fall back to string comparison. Fix: construct the DataFrame with explicit per-column dtypes (or convert `scraped_at` to ISO-format strings before `pd.DataFrame()` construction to dodge the datetime64 inference path) so numeric/timestamp columns get proper Snowflake types.
+
+- [ ] **No dbt tests exist for the pricing models.** `silver_pricing_raw`, `silver_pricing_normalized`, and `gold_network_pricing_comparison` (`dbt/models/silver/schema.yml`, `dbt/models/gold/schema.yml`) have only `description:` fields — zero `not_null`/`unique`/`accepted_values` tests. Confirmed via a full `dbt test` run (2026-06-19): 21/21 existing tests pass, none of them touch pricing. SCOPE.md's "mandatory Silver tests" block (lat/lon/status/data_source) was written for `silver_stations` and doesn't map cleanly onto pricing data, so this needs a deliberate test design, not a copy-paste of the existing block. At minimum, consider: `accepted_values` on `pricing_model` and `normalization_status`, `not_null` on `network_name`/`normalized_kwh_rate` where `normalization_status = 'OK'`, and `not_null` on `national_rank`.
 
 ---
 

@@ -10,6 +10,7 @@ select
     coalesce(membership_tier, 'pay_as_you_go') as membership_tier,
     pricing_model,
     cast(rate_value as decimal(10, 4)) as rate_value,
+    cast(session_fee_value as decimal(10, 4)) as session_fee_value,
     rate_unit,
     coalesce(currency, 'CAD') as currency,
     cast(scraped_at as timestamp) as scraped_at,

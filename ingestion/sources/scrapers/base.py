@@ -20,6 +20,7 @@ class PricingRecord:
     rate_unit: str
     currency: str
     scraped_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    session_fee_value: float | None = None
 
 
 class NetworkPricingScraper(ABC):

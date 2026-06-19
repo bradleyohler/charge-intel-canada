@@ -17,7 +17,7 @@
 ## ⚡ Current Release Target
 
 ```
-RELEASE 2 – Coverage Gap Intelligence
+RELEASE 1 – Canada Station Inventory
 ```
 
 Update this section when a release completes. Complete all acceptance criteria for the current release before beginning work on the next.
@@ -758,17 +758,17 @@ A release is complete when ALL of the following are true.
 
 ### Release 2 – Coverage Gap Intelligence ✓ done when:
 
-- [x] All Release 1 criteria remain passing
-- [x] `BRONZE.STATCAN_POPULATION_RAW` contains FSA-level population data
-- [x] `BRONZE.CER_RATES_RAW` contains at least one rate record per province
-- [x] `silver_population_density` model builds and has ≥850 rows (approximate FSA count in Canada)
-- [x] `silver_electricity_rates` model builds with one row per province for residential flat rate
-- [x] `gold_coverage_by_fsa` model builds without errors
-- [x] `gold_coverage_corridor` model builds; `corridors.csv` seed has ≥5 corridors
-- [x] `gold_coverage_by_province.coverage_score` is not null for all 13 provinces/territories
-- [x] Coverage gaps page shows choropleth map coloured by coverage score
-- [x] Corridor gap table is present with `has_critical_gap` rows highlighted
-- [x] GitHub release `v0.2` is tagged
+- [ ] All Release 1 criteria remain passing
+- [ ] `BRONZE.STATCAN_POPULATION_RAW` contains FSA-level population data
+- [ ] `BRONZE.CER_RATES_RAW` contains at least one rate record per province
+- [ ] `silver_population_density` model builds and has ≥850 rows (approximate FSA count in Canada)
+- [ ] `silver_electricity_rates` model builds with one row per province for residential flat rate
+- [ ] `gold_coverage_by_fsa` model builds without errors
+- [ ] `gold_coverage_corridor` model builds; `corridors.csv` seed has ≥5 corridors
+- [ ] `gold_coverage_by_province.coverage_score` is not null for all 13 provinces/territories
+- [ ] Coverage gaps page shows choropleth map coloured by coverage score
+- [ ] Corridor gap table is present with `has_critical_gap` rows highlighted
+- [ ] GitHub release `v0.2` is tagged
 
 ### Release 3 – Pricing Transparency ✓ done when:
 

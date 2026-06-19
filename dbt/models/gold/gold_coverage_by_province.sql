@@ -44,30 +44,30 @@ province_names as (
 
 joined as (
     select
-        pn.province_code,
+        sc.province_code,
         pn.province_name_en,
         coalesce(pop.population, 0) as population,
-        coalesce(sc.total_stations, 0) as total_stations,
-        coalesce(sc.open_stations, 0) as open_stations,
-        coalesce(sc.total_ports, 0) as total_ports,
-        coalesce(sc.l2_ports, 0) as l2_ports,
-        coalesce(sc.dcfc_ports, 0) as dcfc_ports,
-        coalesce(sc.network_count, 0) as network_count,
+        sc.total_stations,
+        sc.open_stations,
+        sc.total_ports,
+        sc.l2_ports,
+        sc.dcfc_ports,
+        sc.network_count,
         r.avg_electricity_rate,
         case
             when coalesce(pop.population, 0) > 0
-            then cast(coalesce(sc.dcfc_ports, 0) as decimal(10, 2)) / (pop.population / 100000.0)
+            then cast(sc.dcfc_ports as decimal(10, 2)) / (pop.population / 100000.0)
             else 0
         end as dcfc_per_100k_pop,
         case
             when coalesce(pop.population, 0) > 0
-            then cast(coalesce(sc.total_ports, 0) as decimal(10, 2)) / (pop.population / 100000.0)
+            then cast(sc.total_ports as decimal(10, 2)) / (pop.population / 100000.0)
             else 0
         end as ports_per_100k_pop
-    from province_names as pn
-    left join station_counts as sc on pn.province_code = sc.province_code
-    left join population as pop on pn.province_code = pop.province_code
-    left join rates as r on pn.province_code = r.province_code
+    from station_counts as sc
+    left join population as pop on sc.province_code = pop.province_code
+    left join rates as r on sc.province_code = r.province_code
+    left join province_names as pn on sc.province_code = pn.province_code
 ),
 
 scored as (
@@ -94,18 +94,4 @@ scored as (
     from joined
 )
 
-select
-    province_code,
-    province_name_en,
-    population,
-    total_stations,
-    open_stations,
-    total_ports,
-    l2_ports,
-    dcfc_ports,
-    network_count,
-    ports_per_100k_pop,
-    dcfc_per_100k_pop,
-    avg_electricity_rate,
-    coverage_score
-from scored
+select * from scored

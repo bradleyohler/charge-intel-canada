@@ -98,10 +98,7 @@ def write_to_bronze(
         [f'"{c.upper()}" {_sf_type(df[c].dtype)}' for c in data_cols]
         + ['"_INGESTED_AT" TEXT', '"_SOURCE" TEXT']
     )
-    if overwrite:
-        ddl = f'CREATE OR REPLACE TABLE BRONZE."{tbl}" ({col_defs})'
-    else:
-        ddl = f'CREATE TABLE IF NOT EXISTS BRONZE."{tbl}" ({col_defs})'
+    create_ddl = f'CREATE TABLE IF NOT EXISTS BRONZE."{tbl}" ({col_defs})'
 
     # Build row tuples without mutating the DataFrame
     rows = [
@@ -113,8 +110,19 @@ def write_to_bronze(
     conn = get_snowflake_connection(config, login_timeout=30)
     try:
         cur = conn.cursor()
-        logger.info("DDL: %s", ddl[:200])
-        cur.execute(ddl)
+        logger.info("DDL: %s", create_ddl[:200])
+        cur.execute(create_ddl)
+        if overwrite:
+            try:
+                cur.execute(f'DELETE FROM BRONZE."{tbl}"')
+                logger.info("Deleted existing rows from BRONZE.%s", tbl)
+            except snowflake.connector.errors.ProgrammingError as exc:
+                logger.warning(
+                    "Could not delete existing rows from BRONZE.%s "
+                    "(permission error – will INSERT over existing): %s",
+                    tbl,
+                    exc,
+                )
 
         # Multi-row INSERT batches – far faster than executemany for large sets
         n_cols = len(data_cols) + 2  # +2 for _ingested_at, _source

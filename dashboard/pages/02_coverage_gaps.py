@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import altair as alt
+import pydeck as pdk
 import streamlit as st
 
 from dashboard.utils.snowflake_conn import run_query
@@ -43,6 +44,93 @@ except Exception as exc:
 national_avg = province_df["COVERAGE_SCORE"].mean()
 below_avg = (province_df["COVERAGE_SCORE"] < national_avg).sum()
 st.metric("Provinces below national coverage average", below_avg)
+
+# ---------------------------------------------------------------------------
+# Province Coverage Map
+# ---------------------------------------------------------------------------
+
+PROVINCE_CENTROIDS = {
+    "AB": (53.9333, -116.5765),
+    "BC": (53.7267, -127.6476),
+    "MB": (56.4150, -98.7390),
+    "NB": (46.5653, -66.4619),
+    "NL": (53.1355, -57.6604),
+    "NS": (45.1968, -63.1561),
+    "NT": (64.2823, -119.1448),
+    "NU": (70.2998, -83.1076),
+    "ON": (51.2538, -85.3232),
+    "PE": (46.5107, -63.4168),
+    "QC": (52.9399, -73.5491),
+    "SK": (52.9399, -106.4509),
+    "YT": (64.2823, -135.0),
+}
+
+
+def _score_to_color(score: float) -> list[int]:
+    """Map a coverage score 0–100 to an [R, G, B, A] list."""
+    score = max(0.0, min(100.0, float(score)))
+    if score <= 50:
+        t = score / 50.0
+        r = 255
+        g = int(255 * t)
+        b = 0
+    else:
+        t = (score - 50) / 50.0
+        r = int(255 * (1 - t))
+        g = int(255 - 55 * t)  # 255 → 200
+        b = 0
+    return [r, g, b, 160]
+
+
+st.subheader("Province Coverage Map")
+
+if province_df.empty:
+    st.warning("No province data available – skipping coverage map.")
+else:
+    map_data = []
+    for _, row in province_df.iterrows():
+        code = str(row["PROVINCE_CODE"]).upper()
+        centroid = PROVINCE_CENTROIDS.get(code)
+        if centroid is None:
+            continue
+        lat, lon = centroid
+        score = row["COVERAGE_SCORE"]
+        map_data.append(
+            {
+                "province_name": row["PROVINCE_NAME_EN"],
+                "province_code": code,
+                "coverage_score": round(float(score), 1),
+                "latitude": lat,
+                "longitude": lon,
+                "color": _score_to_color(score),
+            }
+        )
+
+    if not map_data:
+        st.warning("Province centroids could not be matched – skipping coverage map.")
+    else:
+        scatter_layer = pdk.Layer(
+            "ScatterplotLayer",
+            data=map_data,
+            get_position=["longitude", "latitude"],
+            get_radius=200000,
+            get_fill_color="color",
+            get_line_color=[80, 80, 80],
+            pickable=True,
+            stroked=True,
+            line_width_min_pixels=1,
+        )
+        view_state = pdk.ViewState(latitude=56.0, longitude=-96.0, zoom=3)
+        deck = pdk.Deck(
+            layers=[scatter_layer],
+            initial_view_state=view_state,
+            tooltip={
+                "html": "<b>{province_name}</b><br/>Coverage Score: {coverage_score}",
+                "style": {"color": "white", "backgroundColor": "#333333"},
+            },
+            map_style="mapbox://styles/mapbox/dark-v10",
+        )
+        st.pydeck_chart(deck)
 
 st.subheader("Coverage Score by Province")
 chart = (

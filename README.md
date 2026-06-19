@@ -3,7 +3,7 @@
 An open analytics platform exposing Canada-specific EV charging coverage gaps and pricing transparency. Built for EV network planners, CPOs, policy teams, and infrastructure investors.
 
 [![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-![Status](https://img.shields.io/badge/release-1--station--inventory-blue)
+![Status](https://img.shields.io/badge/release-2--coverage--gaps-blue)
 [![Live Dashboard](https://img.shields.io/badge/dashboard-live-brightgreen)](https://chargeintelcanada.streamlit.app/)
 
 ---
@@ -84,6 +84,8 @@ pip install -r requirements.txt -r requirements-dev.txt
 # 6. Run ingestion
 python -m ingestion.sources.afdc
 python -m ingestion.sources.circuit_electrique
+python -m ingestion.sources.statcan
+python -m ingestion.sources.cer_rates
 
 # 7. Run dbt transformations
 cd dbt
@@ -123,8 +125,8 @@ streamlit run dashboard/app.py
 | Release | Status | Description |
 |---|---|---|
 | 0 – Scaffold | Complete | Repo structure, Terraform, dbt scaffold, AFDC ingestion |
-| 1 – Station Inventory | **Current** | Full Canada station data, coverage map live |
-| 2 – Coverage Gaps | Planned | FSA population, corridor analysis, choropleth maps |
+| 1 – Station Inventory | Complete | Full Canada station data, coverage map live |
+| 2 – Coverage Gaps | **Current** | FSA population data, electricity rates, corridor analysis, coverage choropleth |
 | 3 – Pricing | Planned | Network pricing scrapers, comparison dashboard |
 | 4 – Integrated Platform | Planned | Site viability scoring, v1.0 release |
 

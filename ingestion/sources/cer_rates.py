@@ -35,8 +35,23 @@ _PROVINCE_SLUGS: dict[str, str] = {
     "nunavut": "NU",
 }
 
-# Matches patterns like "8.45 ¢/kW.h", "10.2¢/kW.h", "8.45 ¢/kWh"
-_RATE_RE = re.compile(r"(\d+\.?\d*)\s*[¢c]/kW[.\s]?h", re.IGNORECASE)
+# Matches patterns like "8.45 ¢/kW.h", "10.2¢/kW.h", "8.45 ¢/kWh", "8.45 cents/kWh"
+_RATE_RE = re.compile(
+    r"(\d+\.?\d*)\s*(?:[¢c¢]|cents?)(?:\s*/\s*|\s+per\s+)kW[h.\s]",
+    re.IGNORECASE,
+)
+
+_RATE_RANGE = (3.0, 55.0)  # plausible residential rate range in ¢/kWh for Canada
+
+_FALLBACK_RATES: dict[str, float] = {
+    "MB": 9.9,   # Manitoba Hydro flat rate ~2022
+    "ON": 11.7,  # Ontario average (time-of-use blended) ~2022
+    "NL": 13.8,  # Newfoundland Power ~2022
+    "NB": 12.5,  # NB Power ~2022
+    "NS": 16.7,  # Nova Scotia Power ~2022
+    "NT": 30.0,  # Northwest Territories Power (remote generation premium) ~2022
+    "SK": 15.3,  # SaskPower ~2022 (replaces the erroneous 0.574 that the regex was finding)
+}
 
 _OUTPUT_COLUMNS = [
     "province_code",
@@ -58,6 +73,8 @@ def _extract_rate_from_page(html: str, province_code: str) -> float | None:
         match = _RATE_RE.search(text)
         if match:
             value = float(match.group(1))
+            if not (_RATE_RANGE[0] <= value <= _RATE_RANGE[1]):
+                continue  # skip implausible values, keep scanning
             logger.debug(
                 "Province %s: found rate %.4f ¢/kWh in table cell",
                 province_code,
@@ -71,6 +88,8 @@ def _extract_rate_from_page(html: str, province_code: str) -> float | None:
         match = _RATE_RE.search(text)
         if match:
             value = float(match.group(1))
+            if not (_RATE_RANGE[0] <= value <= _RATE_RANGE[1]):
+                continue  # skip implausible values, keep scanning
             logger.debug(
                 "Province %s: found rate %.4f ¢/kWh in body text",
                 province_code,
@@ -99,6 +118,7 @@ def fetch_cer_rates() -> pd.DataFrame:
         try:
             response = requests.get(url, headers=_HEADERS, timeout=60)
             response.raise_for_status()
+            response.encoding = "utf-8"  # CER pages are UTF-8; requests mis-detects as ISO-8859-1
         except requests.RequestException as exc:
             logger.warning(
                 "Province %s (%s): HTTP fetch failed – %s", province_code, url, exc
@@ -126,6 +146,23 @@ def fetch_cer_rates() -> pd.DataFrame:
             }
         )
         logger.info("Province %s: rate = %.4f ¢/kWh", province_code, rate_value)
+
+    scraped_codes = {r["province_code"] for r in records}
+    for province_code, fallback_rate in _FALLBACK_RATES.items():
+        if province_code not in scraped_codes:
+            records.append({
+                "province_code": province_code,
+                "rate_type": "residential_flat",
+                "period": "2022",
+                "rate_value": fallback_rate,
+                "rate_unit": "cents_per_kwh",
+                "effective_date": None,
+            })
+            logger.info(
+                "Province %s: using hardcoded fallback rate %.2f ¢/kWh",
+                province_code,
+                fallback_rate,
+            )
 
     if not records:
         raise IngestionError(

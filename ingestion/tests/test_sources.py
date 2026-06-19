@@ -399,3 +399,107 @@ def test_fetch_statcan_population_raises_ingestion_error_on_empty_result() -> No
 
         with pytest.raises(IngestionError):
             fetch_statcan_population()
+
+
+# ---------------------------------------------------------------------------
+# Pricing scrapers ingestion runner tests
+# ---------------------------------------------------------------------------
+
+
+def test_collect_pricing_records_returns_only_successful_scrapers() -> None:
+    from ingestion.sources.pricing_scrapers import collect_pricing_records
+    from ingestion.sources.scrapers.base import PricingRecord
+
+    flo_record = PricingRecord(
+        network_name="FLO",
+        province_code="ON",
+        membership_tier="pay_as_you_go",
+        pricing_model="per_kwh",
+        rate_value=0.35,
+        rate_unit="CAD_per_kwh",
+        currency="CAD",
+    )
+    tesla_record = PricingRecord(
+        network_name="Tesla",
+        province_code=None,
+        membership_tier="member",
+        pricing_model="per_kwh",
+        rate_value=0.43,
+        rate_unit="CAD_per_kwh",
+        currency="CAD",
+    )
+
+    with (
+        patch(
+            "ingestion.sources.pricing_scrapers.FloScraper.scrape",
+            return_value=[flo_record],
+        ),
+        patch(
+            "ingestion.sources.pricing_scrapers.TeslaScraper.scrape",
+            return_value=[tesla_record],
+        ),
+        patch(
+            "ingestion.sources.pricing_scrapers.ChargePointCAScraper.scrape",
+            side_effect=RuntimeError("site changed structure"),
+        ),
+        patch(
+            "ingestion.sources.pricing_scrapers.ElectrifyCanadaScraper.scrape",
+            return_value=[],
+        ),
+        patch(
+            "ingestion.sources.pricing_scrapers.BCHydroEVScraper.scrape",
+            side_effect=RuntimeError("timeout"),
+        ),
+        patch(
+            "ingestion.sources.pricing_scrapers.PetroCanadaScraper.scrape",
+            return_value=[],
+        ),
+        patch(
+            "ingestion.sources.pricing_scrapers.IVYScraper.scrape",
+            return_value=[],
+        ),
+    ):
+        result = collect_pricing_records()
+
+    assert isinstance(result, pd.DataFrame)
+    assert not result.empty
+    assert set(result["network_name"]) == {"FLO", "Tesla"}
+    assert len(result) == 2
+
+
+def test_collect_pricing_records_raises_when_all_scrapers_fail_or_empty() -> None:
+    from ingestion import IngestionError
+    from ingestion.sources.pricing_scrapers import collect_pricing_records
+
+    with (
+        patch(
+            "ingestion.sources.pricing_scrapers.FloScraper.scrape",
+            side_effect=RuntimeError("boom"),
+        ),
+        patch(
+            "ingestion.sources.pricing_scrapers.ChargePointCAScraper.scrape",
+            return_value=[],
+        ),
+        patch(
+            "ingestion.sources.pricing_scrapers.ElectrifyCanadaScraper.scrape",
+            return_value=[],
+        ),
+        patch(
+            "ingestion.sources.pricing_scrapers.BCHydroEVScraper.scrape",
+            return_value=[],
+        ),
+        patch(
+            "ingestion.sources.pricing_scrapers.TeslaScraper.scrape",
+            return_value=[],
+        ),
+        patch(
+            "ingestion.sources.pricing_scrapers.PetroCanadaScraper.scrape",
+            return_value=[],
+        ),
+        patch(
+            "ingestion.sources.pricing_scrapers.IVYScraper.scrape",
+            return_value=[],
+        ),
+    ):
+        with pytest.raises(IngestionError):
+            collect_pricing_records()

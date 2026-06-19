@@ -17,7 +17,7 @@
 ## ⚡ Current Release Target
 
 ```
-RELEASE 2 – Coverage Gap Intelligence
+RELEASE 3 – Pricing Transparency
 ```
 
 Update this section when a release completes. Complete all acceptance criteria for the current release before beginning work on the next.
@@ -772,15 +772,15 @@ A release is complete when ALL of the following are true.
 
 ### Release 3 – Pricing Transparency ✓ done when:
 
-- [ ] All Release 2 criteria remain passing
-- [ ] `NetworkPricingScraper` base class is implemented in `ingestion/sources/scrapers/base.py`
-- [ ] At least 5 of the 8 scrapers run successfully and return non-empty DataFrames
-- [ ] `BRONZE.PRICING_SCRAPE_RAW` contains rows from ≥5 networks
-- [ ] `silver_pricing_normalized` builds without errors; `normalized_kwh_rate` is non-null for at least 80% of rows with a known `pricing_model`
-- [ ] `gold_network_pricing_comparison` builds and contains rows for ≥5 networks
-- [ ] Pricing page shows a network comparison bar chart for at least one province
-- [ ] `weekly_refresh.yml` includes scraper execution step
-- [ ] GitHub release `v0.3` is tagged
+- [x] All Release 2 criteria remain passing
+- [x] `NetworkPricingScraper` base class is implemented in `ingestion/sources/scrapers/base.py`
+- [x] At least 5 of the 8 scrapers run successfully and return non-empty DataFrames — **note:** 7 of 7 implemented scrapers (FLO, ChargePoint CA, Electrify Canada, BC Hydro EV, Tesla, Petro-Canada, IVY) return non-empty data; Circuit Électrique pricing scraper not implemented (station-data ingestion for CE already exists separately, so 7/8 satisfies the ≥5 bar)
+- [x] `BRONZE.PRICING_SCRAPE_RAW` contains rows from ≥5 networks
+- [x] `silver_pricing_normalized` builds without errors; `normalized_kwh_rate` is non-null for at least 80% of rows with a known `pricing_model` — **note:** added `session_fee_value` to `PricingRecord`/bronze/silver to correctly normalize `session_plus_kwh` records (was previously always NULL in the original spec's single-`rate_value` schema)
+- [x] `gold_network_pricing_comparison` builds and contains rows for ≥5 networks
+- [x] Pricing page shows a network comparison bar chart for at least one province
+- [x] `weekly_refresh.yml` includes scraper execution step
+- [x] GitHub release `v0.3` is tagged
 
 ### Release 4 – Integrated Intelligence Platform ✓ done when:
 

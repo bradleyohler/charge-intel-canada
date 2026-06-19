@@ -126,8 +126,8 @@ streamlit run dashboard/app.py
 |---|---|---|
 | 0 – Scaffold | Complete | Repo structure, Terraform, dbt scaffold, AFDC ingestion |
 | 1 – Station Inventory | Complete | Full Canada station data, coverage map live |
-| 2 – Coverage Gaps | **Current** | FSA population data, electricity rates, corridor analysis, coverage choropleth |
-| 3 – Pricing | Planned | Network pricing scrapers, comparison dashboard |
+| 2 – Coverage Gaps | Complete | FSA population data, electricity rates, corridor analysis, coverage choropleth |
+| 3 – Pricing | **Current** | Network pricing scrapers, comparison dashboard |
 | 4 – Integrated Platform | Planned | Site viability scoring, v1.0 release |
 
 ---

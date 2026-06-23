@@ -805,6 +805,14 @@ Tech debt and bugs identified during development that are not release blockers. 
 
 ---
 
+## Future Work
+
+Improvements worth pursuing but not tied to a specific release's acceptance criteria.
+
+- [ ] **Local testing for Streamlit and dbt before deploying.** Currently, validating a fix (e.g. a Streamlit Cloud deployment issue) requires pushing to a branch and either switching the production app's branch or spinning up a second Streamlit Cloud app, plus re-entering Snowflake secrets for that app, since secrets are scoped per-app rather than per-repo/branch. There's no way to reproduce the Streamlit Cloud environment (Python version resolution, dependency install via `uv`/`pip`, secrets injection) locally. Investigate: a `docker-compose` setup that mirrors the Cloud runtime, a `Makefile`/script target that runs `streamlit run` against a local `.env` with read-only Snowflake credentials, and a local `dbt` workflow (e.g. `dbt run --target dev` against a dev schema) so models can be validated before they hit `weekly_refresh.yml` or the dashboard.
+
+---
+
 ## Decision Rules
 
 Apply these rules whenever an ambiguous situation arises. Do not deviate without human approval.
